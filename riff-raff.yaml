@@ -1,0 +1,12 @@
+stacks:
+- membership
+regions:
+- eu-west-1
+deployments:
+  fulfilment-lookup:
+    type: aws-lambda
+    parameters:
+      fileName: fulfilment-lookup.jar
+      bucket: fulfilment-lookup-dist
+      prefixStack: false
+      functionNames: [fulfilment-lookup-]

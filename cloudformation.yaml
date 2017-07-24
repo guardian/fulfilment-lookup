@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Validates fulfilment information for a given subscription name
+Parameters:
+  App:
+    Description: Application name
+    Type: String
+    Default: fulfilment-lookup
+  Stage:
+    Description: Stage name
+    Type: String
+    AllowedValues:
+      - PROD
+      - CODE
+    Default: CODE
+
+Resources:
+  FulfilmentExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: FulfilmentLambdaPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - lambda:InvokeFunction
+              Resource: "*"
+        - PolicyName: ReadFulfilmentBucket
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+              Resource: !Sub arn:aws:s3:::fulfilment-output-test/${Stage}/*
+
+  FulfilmentLookupLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${App}-${Stage}
+      Code:
+        S3Bucket: fulfilment-lookup-dist
+        S3Key: !Sub membership/${Stage}/${App}/${App}.jar
+      Environment:
+        Variables:
+          Stage: !Ref Stage
+      Description: Validates fulfilment information for a given subscription name
+      Handler: com.gu.fulfilmentLookup.Lambda::handler
+      MemorySize: 512
+      Role:
+          Fn::GetAtt:
+          - FulfilmentExecutionRole
+          - Arn
+      Runtime: java8
+      Timeout: 60
+    DependsOn:
+    - FulfilmentExecutionRole
+
+  FulfilmentLookupAPIPermission:
+          Type: AWS::Lambda::Permission
+          Properties:
+              Action: lambda:invokeFunction
+              FunctionName: !Sub fulfilment-lookup-${Stage}
+              Principal: apigateway.amazonaws.com
+          DependsOn: FulfilmentLookupLambda
+
+  FulfilmentLookupAPI:
+          Type: "AWS::ApiGateway::RestApi"
+          Properties:
+              Description: Endpoint used to lookup subscription for given fulfilment file
+              Name: !Sub fulfilment-lookup-api-${Stage}
+
+  FulfilmentLookupProxyResource:
+          Type: AWS::ApiGateway::Resource
+          Properties:
+              RestApiId: !Ref FulfilmentLookupAPI
+              ParentId: !GetAtt [FulfilmentLookupAPI, RootResourceId]
+              PathPart: fulfilment-lookup
+          DependsOn: FulfilmentLookupAPI
+
+  FulfilmentLookupMethod:
+          Type: AWS::ApiGateway::Method
+          Properties:
+              AuthorizationType: NONE
+              RestApiId: !Ref FulfilmentLookupAPI
+              ResourceId: !Ref FulfilmentLookupProxyResource
+              HttpMethod: POST
+              Integration:
+                Type: AWS_PROXY
+                IntegrationHttpMethod: POST
+                Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentLookupLambda.Arn}/invocations
+          DependsOn:
+          - FulfilmentLookupAPI
+          - FulfilmentLookupLambda
+          - FulfilmentLookupProxyResource
+
+  FulfilmentLookupAPIStage:
+          Type: AWS::ApiGateway::Stage
+          Properties:
+              Description: Stage for fulfilment-lookup-api
+              RestApiId: !Ref FulfilmentLookupAPI
+              DeploymentId: !Ref FulfilmentLookupAPIDeployment
+              StageName: !Sub ${Stage}
+          DependsOn: FulfilmentLookupMethod
+
+  FulfilmentLookupAPIDeployment:
+          Type: AWS::ApiGateway::Deployment
+          Properties:
+              Description: Deploys fulfilment-lookup-api into an environment/stage
+              RestApiId: !Ref FulfilmentLookupAPI
+          DependsOn: FulfilmentLookupMethod
