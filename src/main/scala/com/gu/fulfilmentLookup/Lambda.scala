@@ -29,8 +29,7 @@ trait FulfilmentLookupLambda extends Logging {
               outputForAPIGateway(outputStream, Json.toJson(response))
             }
             case error: JsError => {
-              val message = "Failed to parse body successfully"
-              logger.error(message)
+              logger.error(s"Failed to parse body successfully, we got \n ${body.as[String]}")
               val response = LookupResponse(400, "Failed to parse body successfully")
               outputForAPIGateway(outputStream, Json.toJson(response))
             }
