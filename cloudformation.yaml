@@ -68,55 +68,59 @@ Resources:
     - FulfilmentExecutionRole
 
   FulfilmentLookupAPIPermission:
-          Type: AWS::Lambda::Permission
-          Properties:
-              Action: lambda:invokeFunction
-              FunctionName: !Sub fulfilment-lookup-${Stage}
-              Principal: apigateway.amazonaws.com
-          DependsOn: FulfilmentLookupLambda
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName: !Sub fulfilment-lookup-${Stage}
+      Principal: apigateway.amazonaws.com
+    DependsOn:
+    - FulfilmentLookupLambda
 
   FulfilmentLookupAPI:
-          Type: "AWS::ApiGateway::RestApi"
-          Properties:
-              Description: Endpoint used to lookup subscription for given fulfilment file
-              Name: !Sub fulfilment-lookup-api-${Stage}
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Description: Endpoint used to lookup subscription for given fulfilment file
+      Name: !Sub fulfilment-lookup-api-${Stage}
 
   FulfilmentLookupProxyResource:
-          Type: AWS::ApiGateway::Resource
-          Properties:
-              RestApiId: !Ref FulfilmentLookupAPI
-              ParentId: !GetAtt [FulfilmentLookupAPI, RootResourceId]
-              PathPart: fulfilment-lookup
-          DependsOn: FulfilmentLookupAPI
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref FulfilmentLookupAPI
+      ParentId: !GetAtt [FulfilmentLookupAPI, RootResourceId]
+      PathPart: fulfilment-lookup
+    DependsOn:
+    - FulfilmentLookupAPI
 
   FulfilmentLookupMethod:
-          Type: AWS::ApiGateway::Method
-          Properties:
-              AuthorizationType: NONE
-              RestApiId: !Ref FulfilmentLookupAPI
-              ResourceId: !Ref FulfilmentLookupProxyResource
-              HttpMethod: POST
-              Integration:
-                Type: AWS_PROXY
-                IntegrationHttpMethod: POST
-                Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentLookupLambda.Arn}/invocations
-          DependsOn:
-          - FulfilmentLookupAPI
-          - FulfilmentLookupLambda
-          - FulfilmentLookupProxyResource
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref FulfilmentLookupAPI
+      ResourceId: !Ref FulfilmentLookupProxyResource
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentLookupLambda.Arn}/invocations
+    DependsOn:
+      - FulfilmentLookupAPI
+      - FulfilmentLookupLambda
+      - FulfilmentLookupProxyResource
 
   FulfilmentLookupAPIStage:
-          Type: AWS::ApiGateway::Stage
-          Properties:
-              Description: Stage for fulfilment-lookup-api
-              RestApiId: !Ref FulfilmentLookupAPI
-              DeploymentId: !Ref FulfilmentLookupAPIDeployment
-              StageName: !Sub ${Stage}
-          DependsOn: FulfilmentLookupMethod
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      Description: Stage for fulfilment-lookup-api
+      RestApiId: !Ref FulfilmentLookupAPI
+      DeploymentId: !Ref FulfilmentLookupAPIDeployment
+      StageName: !Sub ${Stage}
+    DependsOn:
+    - FulfilmentLookupMethod
 
   FulfilmentLookupAPIDeployment:
-          Type: AWS::ApiGateway::Deployment
-          Properties:
-              Description: Deploys fulfilment-lookup-api into an environment/stage
-              RestApiId: !Ref FulfilmentLookupAPI
-          DependsOn: FulfilmentLookupMethod
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      Description: Deploys fulfilment-lookup-api into an environment/stage
+      RestApiId: !Ref FulfilmentLookupAPI
+    DependsOn:
+    - FulfilmentLookupMethod
