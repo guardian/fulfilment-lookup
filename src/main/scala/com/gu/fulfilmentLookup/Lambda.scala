@@ -104,7 +104,7 @@ trait FulfilmentLookupLambda extends Logging {
   def outputForAPIGateway(outputStream: OutputStream, js: JsValue): Unit = {
     val writer = new OutputStreamWriter(outputStream, "UTF-8")
     val jsonString = Json.stringify(js)
-    logger.info(s"Response will be: $jsonString}")
+    logger.info(s"Response will be: $jsonString")
     writer.write(jsonString)
     writer.close()
   }
