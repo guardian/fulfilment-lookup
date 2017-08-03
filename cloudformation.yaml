@@ -90,27 +90,6 @@ Resources:
     DependsOn:
     - FulfilmentLookupApi
 
-#  FulfilmentLookupApiUsagePlan:
-#      Type: AWS::ApiGateway::UsagePlan
-#      Properties:
-#        ApiStages:
-#        - ApiId: !Ref FulfilmentLookupApi
-#        - Stage: !Ref FulfilmentLookupApiStage
-#        Description: Usage plan for fulfilment lookup API
-#        UsagePlanName: !Sub fulfilment-lookup-usage-plan-${Stage}
-#      DependsOn:
-#      - FulfilmentLookupApi
-#
-#  FulfilmentLookupApiUsagePlanKey:
-#      Type: AWS::ApiGateway::UsagePlanKey
-#      Properties:
-#        KeyId: !Ref FulfilmentLookupApiKey
-#        KeyType: API_KEY
-#        UsagePlanId: !Ref FulfilmentLookupApiUsagePlan
-#      DependsOn:
-#      - FulfilmentLookupApiKey
-#      - FulfilmentLookupApiUsagePlan
-
   FulfilmentLookupProxyResource:
     Type: AWS::ApiGateway::Resource
     Properties:
