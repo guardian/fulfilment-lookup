@@ -51,8 +51,8 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   val lookupRequestA = LookupRequest("A-S12345", date)
   val lookupRequestB = LookupRequest("A-S67815", date)
 
-  val presentLookupResponse = LookupResponseBody("A-S12345", date, "HOME_DELIVERY_Friday21_07_2017.csv", true, Some(expectedAddress))
-  val missingLookupResponse = LookupResponseBody("A-S67815", date, "HOME_DELIVERY_Friday21_07_2017.csv", false, None)
+  val presentLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday21_07_2017.csv", true, Some(expectedAddress))
+  val missingLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday21_07_2017.csv", false, None)
 
   // Tests for individual methods
   "sfFilename" should "build a valid Salesforce Fulfilment File name" in {
@@ -97,7 +97,7 @@ class LambdaTest extends FlatSpec with MockitoSugar {
     lambda.handler(inputStream, outputStream, null)
     val responseString = new String(outputStream.toByteArray(), "UTF-8")
     val expected =
-      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"subscriptionName\\":\\"A-S12345\\",\\"date\\":\\"2017-07-21\\",\\"fileChecked\\":\\"HOME_DELIVERY_Friday21_07_2017.csv\\",\\"subscriptionInFile\\":true,\\"addressDetails\\":\\"House 123, The Street, Islington, London, N1 9AG\\"}"}"""
+      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday21_07_2017.csv\\",\\"subscriptionInFile\\":true,\\"addressDetails\\":\\"House 123, The Street, Islington, London, N1 9AG\\"}"}"""
     assert(responseString == expected)
   }
 
@@ -108,7 +108,7 @@ class LambdaTest extends FlatSpec with MockitoSugar {
     lambda.handler(inputStream, outputStream, null)
     val responseString = new String(outputStream.toByteArray(), "UTF-8")
     val expected =
-      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"subscriptionName\\":\\"A-S67815\\",\\"date\\":\\"2017-07-21\\",\\"fileChecked\\":\\"HOME_DELIVERY_Friday21_07_2017.csv\\",\\"subscriptionInFile\\":false,\\"addressDetails\\":null}"}"""
+      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday21_07_2017.csv\\",\\"subscriptionInFile\\":false,\\"addressDetails\\":null}"}"""
     assert(responseString == expected)
   }
 

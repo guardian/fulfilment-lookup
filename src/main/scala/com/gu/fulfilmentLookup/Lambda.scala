@@ -65,8 +65,6 @@ trait FulfilmentLookupLambda extends Logging {
         val subInFile = subNames.contains(lookupRequest.subscriptionName)
         val subIndex = subNames.indexOf(lookupRequest.subscriptionName)
         val responseBody = LookupResponseBody(
-          lookupRequest.subscriptionName,
-          lookupRequest.date,
           fileName,
           subInFile,
           populateAddressRecord(rows, subIndex)
