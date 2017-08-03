@@ -1,15 +1,14 @@
 package com.gu.fulfilmentLookup
 
 import java.lang.System.getenv
+import com.gu.fulfilmentLookup.BasicAuth.AuthDetails
 
 trait Config {
-  def user: String
-  def password: String
+  def authDetails: AuthDetails
   def stage: String
 }
 
 object EnvConfig extends Config {
-  override def user: String = getenv("User")
-  override def password: String = getenv("Password")
+  override def authDetails: AuthDetails = AuthDetails(getenv("User"), getenv("Password"))
   override def stage: String = getenv("Stage")
 }

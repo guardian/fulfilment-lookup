@@ -3,6 +3,7 @@ package com.gu.fulfilmentLookup
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import com.amazonaws.AmazonServiceException
+import com.gu.fulfilmentLookup.BasicAuth.AuthDetails
 import org.scalatest.FlatSpec
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
@@ -15,8 +16,7 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   val fakeS3Client = mock[CsvClient]
 
   val fakeConfig = new Config {
-    override val user = "testUser"
-    override val password = "testPass"
+    override val authDetails = AuthDetails("testUser", "testPass")
     override val stage = "CODE"
   }
 

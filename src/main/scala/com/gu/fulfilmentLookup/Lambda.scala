@@ -18,7 +18,7 @@ trait FulfilmentLookupLambda extends Logging {
     logger.info(s"Fulfilment Lookup Lambda is starting up...")
     val inputEvent = Json.parse(inputStream)
     val maybeAuthHeader = (inputEvent \ "headers" \ "Authorization").asOpt[String]
-    if (BasicAuth.validAuth(maybeAuthHeader, config)) {
+    if (BasicAuth.validAuth(maybeAuthHeader, config.authDetails)) {
       val maybeBody = (inputEvent \ "body").toOption
       maybeBody match {
         case Some(body) => {
