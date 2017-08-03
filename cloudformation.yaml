@@ -63,7 +63,7 @@ Resources:
     DependsOn:
     - FulfilmentExecutionRole
 
-  FulfilmentLookupAPIPermission:
+  FulfilmentLookupApiPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:invokeFunction
@@ -72,26 +72,36 @@ Resources:
     DependsOn:
     - FulfilmentLookupLambda
 
-  FulfilmentLookupAPI:
+  FulfilmentLookupApi:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
       Description: Endpoint used to lookup subscription for given fulfilment file
       Name: !Sub fulfilment-lookup-api-${Stage}
 
+  FulfilmentLookupApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Description: Key required to call fulfilment lookup API
+      Enabled: true
+      Name: !Sub fulfilment-lookup-api-key-${Stage}
+    DependsOn:
+    - FulfilmentLookupApi
+
   FulfilmentLookupProxyResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      RestApiId: !Ref FulfilmentLookupAPI
-      ParentId: !GetAtt [FulfilmentLookupAPI, RootResourceId]
+      RestApiId: !Ref FulfilmentLookupApi
+      ParentId: !GetAtt [FulfilmentLookupApi, RootResourceId]
       PathPart: fulfilment-lookup
     DependsOn:
-    - FulfilmentLookupAPI
+    - FulfilmentLookupApi
 
   FulfilmentLookupMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
-      RestApiId: !Ref FulfilmentLookupAPI
+      ApiKeyRequired: true
+      RestApiId: !Ref FulfilmentLookupApi
       ResourceId: !Ref FulfilmentLookupProxyResource
       HttpMethod: POST
       Integration:
@@ -99,24 +109,25 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentLookupLambda.Arn}/invocations
     DependsOn:
-      - FulfilmentLookupAPI
+      - FulfilmentLookupApi
+      - FulfilmentLookupApiKey
       - FulfilmentLookupLambda
       - FulfilmentLookupProxyResource
 
-  FulfilmentLookupAPIStage:
+  FulfilmentLookupApiStage:
     Type: AWS::ApiGateway::Stage
     Properties:
       Description: Stage for fulfilment-lookup-api
-      RestApiId: !Ref FulfilmentLookupAPI
-      DeploymentId: !Ref FulfilmentLookupAPIDeployment
+      RestApiId: !Ref FulfilmentLookupApi
+      DeploymentId: !Ref FulfilmentLookupApiDeployment
       StageName: !Sub ${Stage}
     DependsOn:
     - FulfilmentLookupMethod
 
-  FulfilmentLookupAPIDeployment:
+  FulfilmentLookupApiDeployment:
     Type: AWS::ApiGateway::Deployment
     Properties:
       Description: Deploys fulfilment-lookup-api into an environment/stage
-      RestApiId: !Ref FulfilmentLookupAPI
+      RestApiId: !Ref FulfilmentLookupApi
     DependsOn:
     - FulfilmentLookupMethod
