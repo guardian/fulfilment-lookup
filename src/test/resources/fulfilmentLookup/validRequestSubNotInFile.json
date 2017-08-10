@@ -49,6 +49,6 @@
     "httpMethod": "POST",
     "apiId": "someApiId"
   },
-  "body": "{\n \"subscriptionName\":\"A-S67815\",\n    \"date\": \"2017-07-21\"\n }",
+  "body": "{\n \"subscriptionName\":\"A-S67815\",\n    \"issueDate\": \"2017-07-21\"\n }",
   "isBase64Encoded": false
 }

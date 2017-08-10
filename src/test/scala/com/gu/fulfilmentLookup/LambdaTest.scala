@@ -3,7 +3,6 @@ package com.gu.fulfilmentLookup
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import com.amazonaws.AmazonServiceException
-import com.gu.fulfilmentLookup.BasicAuth.AuthDetails
 import org.scalatest.FlatSpec
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
@@ -16,7 +15,6 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   val fakeS3Client = mock[CsvClient]
 
   val fakeConfig = new Config {
-    override val authDetails = AuthDetails("testUser", "testPass")
     override val stage = "CODE"
   }
 
@@ -127,24 +125,6 @@ class LambdaTest extends FlatSpec with MockitoSugar {
     lambda.handler(inputStream, outputStream, null)
     val responseString = new String(outputStream.toByteArray(), "UTF-8")
     val expected = s"""{"statusCode":400,"headers":{"Content-Type":"application/json"},"body":"Failed to parse body successfully"}"""
-    assert(responseString == expected)
-  }
-
-  "handler" should "return a 401 if there is no auth header in request" in {
-    val inputStream = getClass.getResourceAsStream("/fulfilmentLookup/invalidRequestNoAuthHeader.json")
-    val outputStream = new ByteArrayOutputStream
-    lambda.handler(inputStream, outputStream, null)
-    val responseString = new String(outputStream.toByteArray(), "UTF-8")
-    val expected = s"""{"statusCode":401,"headers":{"Content-Type":"application/json"},"body":"Credentials are missing or invalid"}"""
-    assert(responseString == expected)
-  }
-
-  "handler" should "return a 401 if incorrect credentials are included in the request" in {
-    val inputStream = getClass.getResourceAsStream("/fulfilmentLookup/invalidRequestWrongPassword.json")
-    val outputStream = new ByteArrayOutputStream
-    lambda.handler(inputStream, outputStream, null)
-    val responseString = new String(outputStream.toByteArray(), "UTF-8")
-    val expected = s"""{"statusCode":401,"headers":{"Content-Type":"application/json"},"body":"Credentials are missing or invalid"}"""
     assert(responseString == expected)
   }
 

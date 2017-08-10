@@ -4,20 +4,15 @@ import java.time.LocalDate
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{ JsPath, Json, Reads }
 
-case class AuthHeader(authorisation: String)
-
 case class LookupRequest(subscriptionName: String, date: LocalDate)
 
 object LookupRequest {
 
   implicit val lookupRequestReads: Reads[LookupRequest] = (
     (JsPath \ "subscriptionName").read[String] and
-    (JsPath \ "date").read[LocalDate]
+    (JsPath \ "issueDate").read[LocalDate]
   )(LookupRequest.apply _)
-}
 
-object AuthHeader {
-  implicit val authHeaderReads = Json.reads[AuthHeader]
 }
 
 case class DeliveryRow(

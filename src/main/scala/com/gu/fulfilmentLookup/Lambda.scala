@@ -17,38 +17,29 @@ trait FulfilmentLookupLambda extends Logging {
   def handler(inputStream: InputStream, outputStream: OutputStream, context: Context): Unit = {
     logger.info(s"Fulfilment Lookup Lambda is starting up...")
     val inputEvent = Json.parse(inputStream)
-    val maybeAuthHeader = (inputEvent \ "headers" \ "Authorization").asOpt[String]
-    if (BasicAuth.validAuth(maybeAuthHeader, config.authDetails)) {
-      val maybeBody = (inputEvent \ "body").toOption
-      maybeBody match {
-        case Some(body) => {
-          Json.fromJson[LookupRequest](Json.parse(body.as[String])) match {
-            case validLookup: JsSuccess[LookupRequest] => {
-              logger.info(s"Received request the following data: ${validLookup.value}")
-              val response = lookUp(validLookup.value, outputStream)
-              outputForAPIGateway(outputStream, Json.toJson(response))
-            }
-            case error: JsError => {
-              logger.error(s"Failed to parse body successfully, we got \n ${body.as[String]}")
-              val response = LookupResponse(400, "Failed to parse body successfully")
-              outputForAPIGateway(outputStream, Json.toJson(response))
-            }
+    val maybeBody = (inputEvent \ "body").toOption
+    maybeBody match {
+      case Some(body) => {
+        Json.fromJson[LookupRequest](Json.parse(body.as[String])) match {
+          case validLookup: JsSuccess[LookupRequest] => {
+            logger.info(s"Received request the following data: ${validLookup.value}")
+            val response = lookUp(validLookup.value, outputStream)
+            outputForAPIGateway(outputStream, Json.toJson(response))
+          }
+          case error: JsError => {
+            logger.error(s"Failed to parse body successfully, we got \n ${body.as[String]}")
+            val response = LookupResponse(400, "Failed to parse body successfully")
+            outputForAPIGateway(outputStream, Json.toJson(response))
           }
         }
-        case None => {
-          val message = "No request body found in input event"
-          logger.error(message)
-          val response = LookupResponse(400, message)
-          outputForAPIGateway(outputStream, Json.toJson(response))
-        }
       }
-    } else {
-      val message = "Credentials are missing or invalid"
-      logger.info(message)
-      val response = LookupResponse(401, message)
-      outputForAPIGateway(outputStream, Json.toJson(response))
+      case None => {
+        val message = "No request body found in input event"
+        logger.error(message)
+        val response = LookupResponse(400, message)
+        outputForAPIGateway(outputStream, Json.toJson(response))
+      }
     }
-
   }
 
   // Main logic happens here
