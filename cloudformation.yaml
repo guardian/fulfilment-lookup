@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Validates fulfilment information for a given subscription name
+Parameters:
+  Stage:
+    Description: Stage name
+    Type: String
+    AllowedValues:
+      - PROD
+      - CODE
+    Default: CODE
+
+Resources:
+  FulfilmentExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: FulfilmentLambdaPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - lambda:InvokeFunction
+              Resource: "*"
+        - PolicyName: ReadFulfilmentBucket
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+              Resource: !Sub arn:aws:s3:::fulfilment-output-test/${Stage}/*
+
+  FulfilmentLookupLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub fulfilment-lookup-${Stage}
+      Code:
+        S3Bucket: fulfilment-lookup-dist
+        S3Key: !Sub membership/${Stage}/fulfilment-lookup/fulfilment-lookup.jar
+      Environment:
+        Variables:
+          Stage: !Ref Stage
+      Description: Validates fulfilment information for a given subscription name
+      Handler: com.gu.fulfilmentLookup.Lambda::handler
+      MemorySize: 512
+      Role:
+          Fn::GetAtt:
+          - FulfilmentExecutionRole
+          - Arn
+      Runtime: java8
+      Timeout: 60
+    DependsOn:
+    - FulfilmentExecutionRole
+
+  FulfilmentLookupApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName: !Sub fulfilment-lookup-${Stage}
+      Principal: apigateway.amazonaws.com
+    DependsOn:
+    - FulfilmentLookupLambda
+
+  FulfilmentLookupApi:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Description: Endpoint used to lookup subscription for given fulfilment file
+      Name: !Sub fulfilment-lookup-api-${Stage}
+
+  FulfilmentLookupApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Description: Key required to call fulfilment lookup API
+      Enabled: true
+      Name: !Sub fulfilment-lookup-api-key-${Stage}
+      StageKeys:
+        - RestApiId: !Ref FulfilmentLookupApi
+          StageName: !Sub ${Stage}
+    DependsOn:
+    - FulfilmentLookupApi
+
+  FulfilmentLookupProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref FulfilmentLookupApi
+      ParentId: !GetAtt [FulfilmentLookupApi, RootResourceId]
+      PathPart: fulfilment-lookup
+    DependsOn:
+    - FulfilmentLookupApi
+
+  FulfilmentLookupMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      ApiKeyRequired: true
+      RestApiId: !Ref FulfilmentLookupApi
+      ResourceId: !Ref FulfilmentLookupProxyResource
+      HttpMethod: POST
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentLookupLambda.Arn}/invocations
+    DependsOn:
+      - FulfilmentLookupApi
+      - FulfilmentLookupApiKey
+      - FulfilmentLookupLambda
+      - FulfilmentLookupProxyResource
+
+  FulfilmentLookupApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      Description: Stage for fulfilment-lookup-api
+      RestApiId: !Ref FulfilmentLookupApi
+      DeploymentId: !Ref FulfilmentLookupApiDeployment
+      StageName: !Sub ${Stage}
+    DependsOn:
+    - FulfilmentLookupMethod
+
+  FulfilmentLookupApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      Description: Deploys fulfilment-lookup-api into an environment/stage
+      RestApiId: !Ref FulfilmentLookupApi
+    DependsOn:
+    - FulfilmentLookupMethod
