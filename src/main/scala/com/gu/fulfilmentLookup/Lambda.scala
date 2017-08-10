@@ -60,6 +60,7 @@ trait FulfilmentLookupLambda extends Logging {
           subInFile,
           populateAddressRecord(rows, subIndex)
         )
+        logger.info(s"Performed successful lookup for ${lookupRequest.subscriptionName} in $fileName. subInFile: $subInFile | subIndex: $subIndex")
         LookupResponse(200, responseBodyAsString(responseBody))
       }
       case Failure(error) => {
@@ -95,7 +96,6 @@ trait FulfilmentLookupLambda extends Logging {
   def outputForAPIGateway(outputStream: OutputStream, js: JsValue): Unit = {
     val writer = new OutputStreamWriter(outputStream, "UTF-8")
     val jsonString = Json.stringify(js)
-    logger.info(s"Response will be: $jsonString")
     writer.write(jsonString)
     writer.close()
   }
