@@ -89,6 +89,7 @@ Resources:
           StageName: !Sub ${Stage}
     DependsOn:
     - FulfilmentLookupApi
+    - FulfilmentLookupApiStage
 
   FulfilmentLookupProxyResource:
     Type: AWS::ApiGateway::Resource
@@ -113,7 +114,6 @@ Resources:
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FulfilmentLookupLambda.Arn}/invocations
     DependsOn:
       - FulfilmentLookupApi
-      - FulfilmentLookupApiKey
       - FulfilmentLookupLambda
       - FulfilmentLookupProxyResource
 
@@ -125,7 +125,7 @@ Resources:
       DeploymentId: !Ref FulfilmentLookupApiDeployment
       StageName: !Sub ${Stage}
     DependsOn:
-    - FulfilmentLookupMethod
+    - FulfilmentLookupApi
 
   FulfilmentLookupApiDeployment:
     Type: AWS::ApiGateway::Deployment
