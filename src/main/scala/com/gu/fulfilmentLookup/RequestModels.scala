@@ -2,14 +2,15 @@ package com.gu.fulfilmentLookup
 
 import java.time.LocalDate
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{ JsPath, Json, Reads }
+import play.api.libs.json.{ JsPath, Reads }
 
-case class LookupRequest(subscriptionName: String, date: LocalDate)
+case class LookupRequest(subscriptionName: String, sfContactId: String, date: LocalDate)
 
 object LookupRequest {
 
   implicit val lookupRequestReads: Reads[LookupRequest] = (
     (JsPath \ "subscriptionName").read[String] and
+    (JsPath \ "sfContactId").read[String] and
     (JsPath \ "issueDate").read[LocalDate]
   )(LookupRequest.apply _)
 
