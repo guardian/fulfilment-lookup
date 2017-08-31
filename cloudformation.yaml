@@ -53,7 +53,7 @@ Resources:
           Stage: !Ref Stage
       Description: Validates fulfilment information for a given subscription name
       Handler: com.gu.fulfilmentLookup.Lambda::handler
-      MemorySize: 512
+      MemorySize: 1536
       Role:
           Fn::GetAtt:
           - FulfilmentExecutionRole
