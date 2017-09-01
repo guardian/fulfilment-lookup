@@ -49,12 +49,12 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   val lookupRequestA = LookupRequest("A-S12345", date)
   val lookupRequestB = LookupRequest("A-S67815", date)
 
-  val presentLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday21_07_2017.csv", true, Some(expectedAddress))
-  val missingLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday21_07_2017.csv", false, None)
+  val presentLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday_21_07_2017.csv", true, Some(expectedAddress))
+  val missingLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday_21_07_2017.csv", false, None)
 
   // Tests for individual methods
   "sfFilename" should "build a valid Salesforce Fulfilment File name" in {
-    assert(lambda.sfFilename(date) == "HOME_DELIVERY_Friday21_07_2017.csv")
+    assert(lambda.sfFilename(date) == "HOME_DELIVERY_Friday_21_07_2017.csv")
   }
 
   "fullAddress" should "construct a valid address" in {
@@ -70,17 +70,17 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   }
 
   "lookUp" should "build a correct LookupResponse when a subscription is present" in {
-    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     assert(lambda.lookUp(lookupRequestA, new ByteArrayOutputStream) == LookupResponse(200, lambda.responseBodyAsString(presentLookupResponse)))
   }
 
   "lookUp" should "build a correct LookupResponse when a subscription is missing" in {
-    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     assert(lambda.lookUp(lookupRequestB, new ByteArrayOutputStream) == LookupResponse(200, lambda.responseBodyAsString(missingLookupResponse)))
   }
 
   "lookUp" should "return an error when there is a problem getting delivery rows from S3" in {
-    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday21_07_2017.csv")).thenReturn(Failure(new AmazonServiceException("Error from S3")))
+    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Failure(new AmazonServiceException("Error from S3")))
     assert(lambda.lookUp(lookupRequestB, new ByteArrayOutputStream) == LookupResponse(500, "Failed to retrieve fulfilment records"))
   }
 
@@ -91,22 +91,22 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   "handler" should "perform a successful lookup when a valid request is made and the sub name is found" in {
     val inputStream = getClass.getResourceAsStream("/fulfilmentLookup/validRequestSubInFile.json")
     val outputStream = new ByteArrayOutputStream
-    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     lambda.handler(inputStream, outputStream, null)
     val responseString = new String(outputStream.toByteArray(), "UTF-8")
     val expected =
-      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday21_07_2017.csv\\",\\"subscriptionInFile\\":true,\\"addressDetails\\":\\"House 123, The Street, Islington, London, N1 9AG\\"}"}"""
+      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday_21_07_2017.csv\\",\\"subscriptionInFile\\":true,\\"addressDetails\\":\\"House 123, The Street, Islington, London, N1 9AG\\"}"}"""
     assert(responseString == expected)
   }
 
   "handler" should "perform a successful lookup when a valid request is made and the sub name is NOT found" in {
     val inputStream = getClass.getResourceAsStream("/fulfilmentLookup/validRequestSubNotInFile.json")
     val outputStream = new ByteArrayOutputStream
-    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     lambda.handler(inputStream, outputStream, null)
     val responseString = new String(outputStream.toByteArray(), "UTF-8")
     val expected =
-      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday21_07_2017.csv\\",\\"subscriptionInFile\\":false,\\"addressDetails\\":null}"}"""
+      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday_21_07_2017.csv\\",\\"subscriptionInFile\\":false,\\"addressDetails\\":null}"}"""
     assert(responseString == expected)
   }
 
