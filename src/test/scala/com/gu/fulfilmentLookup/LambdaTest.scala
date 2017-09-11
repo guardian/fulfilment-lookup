@@ -98,7 +98,7 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   }
 
   "lookUp" should "return an error if we fail to raise a case in Salesforce" in {
-    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeS3Client.getDeliveryRowsFromS3("fulfilment-output-test", "CODE/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     when(fakeSfCaseService.raiseCase(fakeConfig, lookupRequestA, presentLookupResponse)).thenReturn(-\/("Failed to raise SF case"))
     assert(lambda.lookUp(lookupRequestA, new ByteArrayOutputStream) == LookupResponse(500, "Failed to raise SF case"))
   }
