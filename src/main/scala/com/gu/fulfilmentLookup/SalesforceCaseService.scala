@@ -37,6 +37,20 @@ object SalesforceCaseService extends CaseService with Logging {
     requestBuilder.addHeader("Authorization", s"Bearer ${salesforceAuth.accessToken}")
   }
 
+  def description(lookupResponseBody: LookupResponseBody): String = {
+
+    val addressInformation = lookupResponseBody.addressDetails.map {
+      address => s"We asked our fulfilment partner to send the paper to: $address"
+    }.getOrElse("")
+
+    "This case has been automatically raised due to a customer-initiated distribution check \n" +
+      "\n" +
+      s"Fulfilment File checked: ${lookupResponseBody.fileChecked} \n" +
+      s"Subscription Number included in file: ${lookupResponseBody.subscriptionInFile} \n" +
+      addressInformation
+
+  }
+
   override def authenticate(config: Config): String \/ SalesforceAuth = {
     val builder = requestBuilder(config, "/services/oauth2/token")
     val formBody = new FormBody.Builder()
@@ -62,19 +76,24 @@ object SalesforceCaseService extends CaseService with Logging {
   override def raiseCase(config: Config, lookupRequest: LookupRequest, lookupResponseBody: LookupResponseBody): String \/ Boolean = {
     val salesforceAuth = authenticate(config)
     salesforceAuth.flatMap { auth =>
-      val builderWithAuth = withSfAuth(requestBuilder(config, "sobjects/Case/"), auth)
+      val builderWithAuth = withSfAuth(requestBuilder(config, "/services/data/v29.0/sobjects/Case/"), auth)
+      val debugInfo = description(lookupResponseBody)
       val bodyString = Json.obj(
         "ContactId" -> lookupRequest.sfContactId,
         "Reason" -> "Non-delivery",
         "Status" -> "New",
         "Origin" -> "subscriptions",
         "Subject" -> s"Non-delivery | Paper Date: ${lookupRequest.date}",
-        "Description" -> s"=== Debug Information === \n ${lookupResponseBody}"
+        "Description" -> s"$debugInfo"
       ).toString()
       val request = builderWithAuth.post(RequestBody.create(MediaType.parse("application/json"), bodyString)).build()
       logger.info(s"Attempting to raise case in Salesforce for sfContactId: ${lookupRequest.sfContactId}")
       val response = restClient.newCall(request).execute()
-      if (response.isSuccessful) \/-(true) else -\/(s"Failed to raise Salesforce case for sfContactId: ${lookupRequest.sfContactId}")
+      if (response.isSuccessful) { \/-(true) }
+      else {
+        logger.error(s"Salesforce call failed with a ${response.code()} | body: ${response.body}")
+        -\/(s"Failed to raise Salesforce case for sfContactId: ${lookupRequest.sfContactId}")
+      }
     }
   }
 
