@@ -81,11 +81,11 @@ object SalesforceCaseService extends CaseService with Logging {
       val bodyString = Json.obj(
         "ContactId" -> lookupRequest.sfContactId,
         "Status" -> "New",
-        "Origin" -> "Home Delivery",
+        "Origin" -> "FulfilmentLookupAPI",
         "Product__c" -> "Home Delivery",
         "Journey__c" -> "CS - Home Delivery Support", // Case Type
         "Case_Closure_Reason__c" -> "No Delivery", // Sub-Category
-        "Subject" -> s"Delivery Issue | Paper Date: ${lookupRequest.date}",
+        "Subject" -> s"Delivery Problem | Paper Date: ${lookupRequest.date}",
         "Description" -> s"$debugInfo"
       ).toString()
       val request = builderWithAuth.post(RequestBody.create(MediaType.parse("application/json"), bodyString)).build()
