@@ -7,10 +7,12 @@ import play.api.libs.json.{ JsError, JsSuccess, JsValue, Json }
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.fulfilmentLookup.ResponseWriters._
 import scala.util.{ Failure, Success }
+import scalaz.{ -\/, \/- }
 
 trait FulfilmentLookupLambda extends Logging {
 
   def s3Client: CsvClient
+  def caseService: CaseService
   def config: Config
 
   // Entry point for the Lambda
@@ -61,7 +63,14 @@ trait FulfilmentLookupLambda extends Logging {
           populateAddressRecord(rows, subIndex)
         )
         logger.info(s"Performed successful lookup for ${lookupRequest.subscriptionName} in $fileName. subInFile: $subInFile | subIndex: $subIndex")
-        LookupResponse(200, responseBodyAsString(responseBody))
+        caseService.raiseCase(config, lookupRequest, responseBody) match {
+          case \/-(_) =>
+            logger.info("Successfully raised Salesforce case")
+            LookupResponse(200, responseBodyAsString(responseBody))
+          case -\/(error) =>
+            logger.error(error)
+            LookupResponse(500, error)
+        }
       }
       case Failure(error) => {
         logger.error(s"Failed to get or parse delivery rows due to: $error. S3 bucket: $bucket | subFolder: $subFolder | fileName: $fileName")
@@ -104,6 +113,7 @@ trait FulfilmentLookupLambda extends Logging {
 
 object Lambda extends FulfilmentLookupLambda {
   override val s3Client = AwsS3Client
+  override val caseService = SalesforceCaseService
   override val config = EnvConfig
 }
 

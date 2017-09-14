@@ -2,9 +2,7 @@ package com.gu.fulfilmentLookup
 
 import org.scalatest.FlatSpec
 import org.scalatest.mockito.MockitoSugar
-
 import scala.io.Source
-import scala.util.Success
 
 class AwsS3ClientTest extends FlatSpec with MockitoSugar with Logging {
 
