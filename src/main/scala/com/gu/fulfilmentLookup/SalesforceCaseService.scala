@@ -93,7 +93,7 @@ object SalesforceCaseService extends CaseService with Logging {
       val response = restClient.newCall(request).execute()
       if (response.isSuccessful) { \/-(true) }
       else {
-        logger.error(s"Salesforce call failed with a ${response.code()} | body: ${response.body}")
+        logger.error(s"Salesforce call failed with a ${response.code()} | body: ${response.body.string()}")
         -\/(s"Failed to raise Salesforce case for sfContactId: ${lookupRequest.sfContactId}")
       }
     }
