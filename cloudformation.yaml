@@ -32,6 +32,12 @@ Resources:
                 - logs:PutLogEvents
                 - lambda:InvokeFunction
               Resource: "*"
+        - PolicyName: ReadPrivateCredentials
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action: s3:GetObject
+              Resource: !Sub arn:aws:s3:::fulfilment-lookup-private/${Stage}/*
         - PolicyName: ReadFulfilmentBucket
           PolicyDocument:
             Statement:
