@@ -6,23 +6,18 @@ import play.api.libs.json.{ JsPath, JsSuccess, Json, Reads }
 import play.api.libs.functional.syntax._
 import scalaz.{ -\/, \/, \/- }
 
-case class SalesforceAuth(accessToken: String, instanceUrl: String)
+object SalesforceRequestWiring extends Logging {
 
-object SalesforceAuth {
+  case class SalesforceAuth(accessToken: String, instanceUrl: String)
 
-  implicit val salesforceAuthReads: Reads[SalesforceAuth] = (
-    (JsPath \ "access_token").read[String] and
-    (JsPath \ "instance_url").read[String]
-  )(SalesforceAuth.apply _)
+  object SalesforceAuth {
 
-}
+    implicit val salesforceAuthReads: Reads[SalesforceAuth] = (
+      (JsPath \ "access_token").read[String] and
+      (JsPath \ "instance_url").read[String]
+    )(SalesforceAuth.apply _)
 
-trait CaseService {
-  def authenticate(config: Config): String \/ SalesforceAuth
-  def raiseCase(config: Config, lookupRequest: LookupRequest, lookupResponseBody: LookupResponseBody): String \/ Boolean
-}
-
-object SalesforceCaseService extends CaseService with Logging {
+  }
 
   val restClient = new OkHttpClient().newBuilder()
     .readTimeout(15, TimeUnit.SECONDS)
@@ -37,21 +32,7 @@ object SalesforceCaseService extends CaseService with Logging {
     requestBuilder.addHeader("Authorization", s"Bearer ${salesforceAuth.accessToken}")
   }
 
-  def description(lookupResponseBody: LookupResponseBody): String = {
-
-    val addressInformation = lookupResponseBody.addressDetails.map {
-      address => s"We asked our fulfilment partner to send the paper to: $address"
-    }.getOrElse("")
-
-    "This case has been automatically raised due to a customer-initiated distribution check \n" +
-      "\n" +
-      s"Fulfilment File checked: ${lookupResponseBody.fileChecked} \n" +
-      s"Subscription Number included in file: ${lookupResponseBody.subscriptionInFile} \n" +
-      addressInformation
-
-  }
-
-  override def authenticate(config: Config): String \/ SalesforceAuth = {
+  def authenticate(config: Config): String \/ SalesforceAuth = {
     val builder = requestBuilder(config, "/services/oauth2/token")
     val formBody = new FormBody.Builder()
       .add("client_id", config.salesforceClientId)
@@ -73,7 +54,31 @@ object SalesforceCaseService extends CaseService with Logging {
     }
   }
 
-  override def raiseCase(config: Config, lookupRequest: LookupRequest, lookupResponseBody: LookupResponseBody): String \/ Boolean = {
+}
+
+trait RaiseCase {
+  def open(config: Config, lookupRequest: LookupRequest, lookupResponseBody: LookupResponseBody): String \/ Boolean
+}
+
+object RaiseSalesforceCase extends RaiseCase with Logging {
+
+  import com.gu.fulfilmentLookup.SalesforceRequestWiring._
+
+  def description(lookupResponseBody: LookupResponseBody): String = {
+
+    val addressInformation = lookupResponseBody.addressDetails.map {
+      address => s"We asked our fulfilment partner to send the paper to: $address"
+    }.getOrElse("")
+
+    "This case has been automatically raised due to a customer-initiated distribution check \n" +
+      "\n" +
+      s"Fulfilment File checked: ${lookupResponseBody.fileChecked} \n" +
+      s"Subscription Number included in file: ${lookupResponseBody.subscriptionInFile} \n" +
+      addressInformation
+
+  }
+
+  override def open(config: Config, lookupRequest: LookupRequest, lookupResponseBody: LookupResponseBody): String \/ Boolean = {
     val salesforceAuth = authenticate(config)
     salesforceAuth.flatMap { auth =>
       val builderWithAuth = withSfAuth(requestBuilder(config, "/services/data/v29.0/sobjects/Case/"), auth)

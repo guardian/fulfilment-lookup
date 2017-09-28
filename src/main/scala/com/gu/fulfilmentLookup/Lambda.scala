@@ -12,7 +12,7 @@ import scalaz.{ -\/, \/- }
 trait FulfilmentLookupLambda extends Logging {
 
   def csvClient: CsvClient
-  def caseService: CaseService
+  def raiseCase: RaiseCase
   def stage: String
   def loadConfig: Try[Config]
 
@@ -72,7 +72,7 @@ trait FulfilmentLookupLambda extends Logging {
           populateAddressRecord(rows, subIndex)
         )
         logger.info(s"Performed successful lookup for ${lookupRequest.subscriptionName} in $fileName. subInFile: $subInFile | subIndex: $subIndex")
-        caseService.raiseCase(config, lookupRequest, responseBody) match {
+        raiseCase.open(config, lookupRequest, responseBody) match {
           case \/-(_) =>
             logger.info("Successfully raised Salesforce case")
             LookupResponse(200, responseBodyAsString(responseBody))
@@ -122,7 +122,7 @@ trait FulfilmentLookupLambda extends Logging {
 
 object Lambda extends FulfilmentLookupLambda {
   override val csvClient = FulfilmentFileClient
-  override val caseService = SalesforceCaseService
+  override val raiseCase = RaiseSalesforceCase
   override val stage = System.getenv("Stage")
   override val loadConfig = Config.load(stage)
 }
