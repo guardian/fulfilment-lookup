@@ -11,7 +11,7 @@ import scalaz.{ -\/, \/- }
 
 trait FulfilmentLookupLambda extends Logging {
 
-  def s3Client: CsvClient
+  def csvClient: CsvClient
   def caseService: CaseService
   def config: Config
 
@@ -50,7 +50,7 @@ trait FulfilmentLookupLambda extends Logging {
     val bucket = "fulfilment-output-test"
     val subFolder = s"${stage}/salesforce_output/"
     val fileName = sfFilename(lookupRequest.date)
-    val deliveryRows = s3Client.getDeliveryRowsFromS3(bucket, subFolder, fileName)
+    val deliveryRows = csvClient.getDeliveryRowsFromS3(bucket, subFolder, fileName)
     deliveryRows match {
       case Success(rows) => {
         logger.info(s"Successfully retrieved fulfilment file and parsed ${rows.size} row(s) from $fileName")
@@ -112,7 +112,7 @@ trait FulfilmentLookupLambda extends Logging {
 }
 
 object Lambda extends FulfilmentLookupLambda {
-  override val s3Client = AwsS3Client
+  override val csvClient = FulfilmentFileClient
   override val caseService = SalesforceCaseService
   override val config = EnvConfig
 }
