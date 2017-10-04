@@ -57,7 +57,7 @@ trait FulfilmentLookupLambda extends Logging {
   // Main logic happens here
   def lookUp(config: Config, lookupRequest: LookupRequest, outputStream: OutputStream): LookupResponse = {
     val bucket = "fulfilment-output-test"
-    val subFolder = s"${stage}/salesforce_output/"
+    val subFolder = s"${stage}/uploaded/"
     val fileName = sfFilename(lookupRequest.date)
     val deliveryRows = csvClient.getDeliveryRowsFromS3(bucket, subFolder, fileName)
     deliveryRows match {

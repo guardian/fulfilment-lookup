@@ -84,24 +84,24 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   }
 
   "lookUp" should "build a correct LookupResponse when a subscription is present" in {
-    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/uploaded/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResponse)).thenReturn(\/-(true))
     assert(lambda.lookUp(fakeConfig, lookupRequestA, new ByteArrayOutputStream) == LookupResponse(200, lambda.responseBodyAsString(presentLookupResponse)))
   }
 
   "lookUp" should "build a correct LookupResponse when a subscription is missing" in {
-    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/uploaded/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestB, missingLookupResponse)).thenReturn(\/-(true))
     assert(lambda.lookUp(fakeConfig, lookupRequestB, new ByteArrayOutputStream) == LookupResponse(200, lambda.responseBodyAsString(missingLookupResponse)))
   }
 
   "lookUp" should "return an error when there is a problem getting delivery rows from S3" in {
-    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Failure(new AmazonServiceException("Error from S3")))
+    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/uploaded/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Failure(new AmazonServiceException("Error from S3")))
     assert(lambda.lookUp(fakeConfig, lookupRequestB, new ByteArrayOutputStream) == LookupResponse(500, "Failed to retrieve fulfilment records"))
   }
 
   "lookUp" should "return an error if we fail to raise a case in Salesforce" in {
-    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
+    when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-output-test", "DEV/uploaded/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
     when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResponse)).thenReturn(-\/("Failed to raise SF case"))
     assert(lambda.lookUp(fakeConfig, lookupRequestA, new ByteArrayOutputStream) == LookupResponse(500, "Failed to raise SF case"))
   }
