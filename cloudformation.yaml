@@ -8,6 +8,15 @@ Parameters:
       - PROD
       - CODE
     Default: CODE
+  ApiName:
+    Type: String
+    AllowedValues:
+    - fulfilment-lookup-api-CODE
+    - fulfilment-lookup-api-PROD
+    Default: fulfilment-lookup-api-CODE
+
+Conditions:
+  CreateProdMonitoring: !Equals [ !Ref Stage, PROD ]
 
 Resources:
   FulfilmentExecutionRole:
@@ -82,7 +91,7 @@ Resources:
     Type: "AWS::ApiGateway::RestApi"
     Properties:
       Description: Endpoint used to lookup subscription for given fulfilment file
-      Name: !Sub fulfilment-lookup-api-${Stage}
+      Name: !Sub ${ApiName}
 
   FulfilmentLookupApiKey:
     Type: AWS::ApiGateway::ApiKey
@@ -140,3 +149,43 @@ Resources:
       RestApiId: !Ref FulfilmentLookupApi
     DependsOn:
     - FulfilmentLookupMethod
+
+  FulfilmentLookup5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdMonitoring
+    Properties:
+      AlarmActions:
+      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:subscriptions_dev
+      AlarmName: 5XX rate from fulfilment-lookup-api
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub ${ApiName}
+        - Name: Stage
+          Value: !Sub ${Stage}
+      EvaluationPeriods: 1
+      MetricName: 5XXError
+      Namespace: AWS/ApiGateway
+      Period: 7200
+      Statistic: Sum
+      Threshold: 2
+
+  FulfilmentLookup4xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: CreateProdMonitoring
+    Properties:
+      AlarmActions:
+      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:subscriptions_dev
+      AlarmName: 4XX rate from fulfilment-lookup-api
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub ${ApiName}
+        - Name: Stage
+          Value: !Sub ${Stage}
+      EvaluationPeriods: 1
+      MetricName: 4XXError
+      Namespace: AWS/ApiGateway
+      Period: 7200
+      Statistic: Sum
+      Threshold: 2
