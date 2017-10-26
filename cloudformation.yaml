@@ -8,6 +8,12 @@ Parameters:
       - PROD
       - CODE
     Default: CODE
+  FileLocation:
+    Description: Location of uploaded fulfilment files
+    Type: String
+    AllowedValues:
+      - fulfilment-export-code/uploaded
+      - fulfilment-export-prod/uploaded
   ApiName:
     Type: String
     AllowedValues:
@@ -54,7 +60,7 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:GetObjectVersion
-              Resource: !Sub arn:aws:s3:::fulfilment-output-test/${Stage}/*
+              Resource: !Sub arn:aws:s3:::${FileLocation}/*
 
   FulfilmentLookupLambda:
     Type: AWS::Lambda::Function
