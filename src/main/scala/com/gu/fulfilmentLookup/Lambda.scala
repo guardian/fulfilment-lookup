@@ -100,7 +100,7 @@ trait FulfilmentLookupLambda extends Logging {
 
   def sfFilename(date: LocalDate): String = {
     val dayOfWeek = date.getDayOfWeek.toString.toLowerCase.capitalize
-    val dateFormatter = DateTimeFormatter.ofPattern("dd_MM_YYYY")
+    val dateFormatter = DateTimeFormatter.ofPattern("dd_MM_yyyy")
     val sfFileFormattedDate = date.format(dateFormatter)
     s"HOME_DELIVERY_${dayOfWeek}_${sfFileFormattedDate}.csv"
   }
