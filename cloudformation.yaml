@@ -112,6 +112,24 @@ Resources:
     - FulfilmentLookupApi
     - FulfilmentLookupApiStage
 
+  FulfilmentLookupUsagePlan:
+    Type: "AWS::ApiGateway::UsagePlan"
+    Properties:
+      UsagePlanName: !Sub ${ApiName}
+      ApiStages:
+      - ApiId: !Ref FulfilmentLookupApi
+        Stage: !Ref FulfilmentLookupApiStage
+
+  FulfilmentLookupUsagePlanKey:
+    Type: "AWS::ApiGateway::UsagePlanKey"
+    Properties:
+      KeyId: !Ref FulfilmentLookupApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref FulfilmentLookupUsagePlan
+    DependsOn:
+    - FulfilmentLookupApiKey
+    - FulfilmentLookupUsagePlan
+
   FulfilmentLookupProxyResource:
     Type: AWS::ApiGateway::Resource
     Properties:
