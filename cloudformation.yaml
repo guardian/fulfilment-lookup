@@ -119,6 +119,9 @@ Resources:
       ApiStages:
       - ApiId: !Ref FulfilmentLookupApi
         Stage: !Ref FulfilmentLookupApiStage
+    DependsOn:
+    - FulfilmentLookupApi
+    - FulfilmentLookupApiStage
 
   FulfilmentLookupUsagePlanKey:
     Type: "AWS::ApiGateway::UsagePlanKey"
