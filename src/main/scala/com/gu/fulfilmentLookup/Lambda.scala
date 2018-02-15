@@ -66,16 +66,16 @@ trait FulfilmentLookupLambda extends Logging {
         val subNames = rows.map(row => row.subscriptionName)
         val subInFile = subNames.contains(lookupRequest.subscriptionName)
         val subIndex = subNames.indexOf(lookupRequest.subscriptionName)
-        val responseBody = LookupResponseBody(
+        val result = LookupResult(
           fileName,
           subInFile,
           populateAddressRecord(rows, subIndex)
         )
         logger.info(s"Performed successful lookup for ${lookupRequest.subscriptionName} in $fileName. subInFile: $subInFile | subIndex: $subIndex")
-        raiseCase.open(config, lookupRequest, responseBody) match {
+        raiseCase.open(config, lookupRequest, result) match {
           case \/-(_) =>
             logger.info("Successfully raised Salesforce case")
-            LookupResponse(200, responseBodyAsString(responseBody))
+            LookupResponse(200, responseBodyAsString(LookupResponseBody(result.fileChecked, result.subscriptionInFile)))
           case -\/(error) =>
             logger.error(error)
             LookupResponse(500, error)

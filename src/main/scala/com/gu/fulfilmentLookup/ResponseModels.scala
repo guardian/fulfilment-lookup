@@ -2,7 +2,7 @@ package com.gu.fulfilmentLookup
 
 import play.api.libs.json.{ JsValue, Json, Writes }
 
-case class LookupResponseBody(fileChecked: String, subscriptionInFile: Boolean, addressDetails: Option[String])
+case class LookupResponseBody(fileChecked: String, subscriptionInFile: Boolean)
 
 case class LookupResponse(statusCode: Int = 200, body: String)
 
@@ -11,8 +11,7 @@ object ResponseWriters {
   implicit val lookupResponseBodyWrites = new Writes[LookupResponseBody] {
     def writes(lookupResponseBody: LookupResponseBody): JsValue = Json.obj(
       "fileChecked" -> lookupResponseBody.fileChecked,
-      "subscriptionInFile" -> lookupResponseBody.subscriptionInFile,
-      "addressDetails" -> lookupResponseBody.addressDetails
+      "subscriptionInFile" -> lookupResponseBody.subscriptionInFile
     )
   }
 
