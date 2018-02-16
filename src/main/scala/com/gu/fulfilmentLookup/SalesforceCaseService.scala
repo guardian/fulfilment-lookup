@@ -25,7 +25,7 @@ object SalesforceRequestWiring extends Logging {
 
   def requestBuilder(config: Config, route: String): Request.Builder = {
     new Request.Builder()
-      .url(s"${config.salesforceUrl}/$route")
+      .url(s"${config.salesforceUrl}$route")
   }
 
   def withSfAuth(requestBuilder: Request.Builder, salesforceAuth: SalesforceAuth): Request.Builder = {
@@ -56,33 +56,35 @@ object SalesforceRequestWiring extends Logging {
 
 }
 
+case class LookupResult(fileChecked: String, subscriptionInFile: Boolean, addressDetails: Option[String])
+
 trait RaiseCase {
-  def open(config: Config, lookupRequest: LookupRequest, lookupResponseBody: LookupResponseBody): String \/ Boolean
+  def open(config: Config, lookupRequest: LookupRequest, lookupResult: LookupResult): String \/ Boolean
 }
 
 object RaiseSalesforceCase extends RaiseCase with Logging {
 
   import com.gu.fulfilmentLookup.SalesforceRequestWiring._
 
-  def description(lookupResponseBody: LookupResponseBody): String = {
+  def description(lookupResult: LookupResult): String = {
 
-    val addressInformation = lookupResponseBody.addressDetails.map {
+    val addressInformation = lookupResult.addressDetails.map {
       address => s"We asked our fulfilment partner to send the paper to: $address"
     }.getOrElse("")
 
     "This case has been automatically raised due to a customer-initiated distribution check \n" +
       "\n" +
-      s"Fulfilment File checked: ${lookupResponseBody.fileChecked} \n" +
-      s"Subscription Number included in file: ${lookupResponseBody.subscriptionInFile} \n" +
+      s"Fulfilment File checked: ${lookupResult.fileChecked} \n" +
+      s"Subscription Number included in file: ${lookupResult.subscriptionInFile} \n" +
       addressInformation
 
   }
 
-  override def open(config: Config, lookupRequest: LookupRequest, lookupResponseBody: LookupResponseBody): String \/ Boolean = {
+  override def open(config: Config, lookupRequest: LookupRequest, lookupResult: LookupResult): String \/ Boolean = {
     val salesforceAuth = authenticate(config)
     salesforceAuth.flatMap { auth =>
       val builderWithAuth = withSfAuth(requestBuilder(config, "/services/data/v29.0/sobjects/Case/"), auth)
-      val debugInfo = description(lookupResponseBody)
+      val debugInfo = description(lookupResult)
       val bodyString = Json.obj(
         "ContactId" -> lookupRequest.sfContactId,
         "Status" -> "New",

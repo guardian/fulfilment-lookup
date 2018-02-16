@@ -63,8 +63,11 @@ class LambdaTest extends FlatSpec with MockitoSugar {
   val lookupRequestA = LookupRequest("A-S12345", "sf12345", date)
   val lookupRequestB = LookupRequest("A-S67815", "sf67891", date)
 
-  val presentLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday_21_07_2017.csv", true, Some(expectedAddress))
-  val missingLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday_21_07_2017.csv", false, None)
+  val presentLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday_21_07_2017.csv", true)
+  val missingLookupResponse = LookupResponseBody("HOME_DELIVERY_Friday_21_07_2017.csv", false)
+
+  val presentLookupResult = LookupResult("HOME_DELIVERY_Friday_21_07_2017.csv", true, Some(expectedAddress))
+  val missingLookupResult = LookupResult("HOME_DELIVERY_Friday_21_07_2017.csv", false, None)
 
   // Tests for individual methods
   "sfFilename" should "build a valid Salesforce Fulfilment File name" in {
@@ -85,13 +88,13 @@ class LambdaTest extends FlatSpec with MockitoSugar {
 
   "lookUp" should "build a correct LookupResponse when a subscription is present" in {
     when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-export-dev", "uploaded/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
-    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResponse)).thenReturn(\/-(true))
+    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResult)).thenReturn(\/-(true))
     assert(lambda.lookUp(fakeConfig, lookupRequestA, new ByteArrayOutputStream) == LookupResponse(200, lambda.responseBodyAsString(presentLookupResponse)))
   }
 
   "lookUp" should "build a correct LookupResponse when a subscription is missing" in {
     when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-export-dev", "uploaded/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
-    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestB, missingLookupResponse)).thenReturn(\/-(true))
+    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestB, missingLookupResult)).thenReturn(\/-(true))
     assert(lambda.lookUp(fakeConfig, lookupRequestB, new ByteArrayOutputStream) == LookupResponse(200, lambda.responseBodyAsString(missingLookupResponse)))
   }
 
@@ -102,7 +105,7 @@ class LambdaTest extends FlatSpec with MockitoSugar {
 
   "lookUp" should "return an error if we fail to raise a case in Salesforce" in {
     when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-export-dev", "uploaded/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
-    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResponse)).thenReturn(-\/("Failed to raise SF case"))
+    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResult)).thenReturn(-\/("Failed to raise SF case"))
     assert(lambda.lookUp(fakeConfig, lookupRequestA, new ByteArrayOutputStream) == LookupResponse(500, "Failed to raise SF case"))
   }
 
@@ -114,11 +117,11 @@ class LambdaTest extends FlatSpec with MockitoSugar {
     val inputStream = getClass.getResourceAsStream("/fulfilmentLookup/validRequestSubInFile.json")
     val outputStream = new ByteArrayOutputStream
     when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-export-dev", "salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
-    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResponse)).thenReturn(\/-(true))
+    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestA, presentLookupResult)).thenReturn(\/-(true))
     lambda.handler(inputStream, outputStream, null)
     val responseString = new String(outputStream.toByteArray(), "UTF-8")
     val expected =
-      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday_21_07_2017.csv\\",\\"subscriptionInFile\\":true,\\"addressDetails\\":\\"House 123, The Street, Islington, London, N1 9AG\\"}"}"""
+      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday_21_07_2017.csv\\",\\"subscriptionInFile\\":true}"}"""
     assert(responseString == expected)
   }
 
@@ -126,11 +129,11 @@ class LambdaTest extends FlatSpec with MockitoSugar {
     val inputStream = getClass.getResourceAsStream("/fulfilmentLookup/validRequestSubNotInFile.json")
     val outputStream = new ByteArrayOutputStream
     when(fakeFulfilmentClient.getDeliveryRowsFromS3("fulfilment-export-dev", "salesforce_output/", "HOME_DELIVERY_Friday_21_07_2017.csv")).thenReturn(Success(deliveryRows))
-    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestB, missingLookupResponse)).thenReturn(\/-(true))
+    when(fakeSfCaseRaiser.open(fakeConfig, lookupRequestB, missingLookupResult)).thenReturn(\/-(true))
     lambda.handler(inputStream, outputStream, null)
     val responseString = new String(outputStream.toByteArray(), "UTF-8")
     val expected =
-      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday_21_07_2017.csv\\",\\"subscriptionInFile\\":false,\\"addressDetails\\":null}"}"""
+      s"""{"statusCode":200,"headers":{"Content-Type":"application/json"},"body":"{\\"fileChecked\\":\\"HOME_DELIVERY_Friday_21_07_2017.csv\\",\\"subscriptionInFile\\":false}"}"""
     assert(responseString == expected)
   }
 
