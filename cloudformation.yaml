@@ -52,7 +52,7 @@ Resources:
             Statement:
               Effect: Allow
               Action: s3:GetObject
-              Resource: !Sub arn:aws:s3:::fulfilment-lookup-private/${Stage}/*
+              Resource: !Sub arn:aws:s3:::gu-reader-revenue-private/membership/fulfilment-lookup/${Stage}/*
         - PolicyName: ReadFulfilmentBucket
           PolicyDocument:
             Statement:

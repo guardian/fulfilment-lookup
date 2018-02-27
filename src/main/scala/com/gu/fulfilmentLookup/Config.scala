@@ -27,7 +27,7 @@ object Config extends Logging {
 
   def load(stage: String): Try[Config] = {
     logger.info(s"Attempting to load config in $stage")
-    val bucket = s"fulfilment-lookup-private/$stage"
+    val bucket = s"gu-reader-revenue-private/membership/fulfilment-lookup/$stage"
     val key = "fulfilment-lookup.private.json"
     val request = new GetObjectRequest(bucket, key)
     for {
