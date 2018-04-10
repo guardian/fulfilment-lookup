@@ -33,7 +33,8 @@ libraryDependencies ++= Seq(
   "log4j" % "log4j" % "1.2.17",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test",
   "org.scalaz" % "scalaz-core_2.12" % "7.2.14",
-  "org.mockito" % "mockito-core" % "1.9.5" % "test"
+  "org.mockito" % "mockito-core" % "1.9.5" % "test",
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11.1"
 )
 
 initialize := {
