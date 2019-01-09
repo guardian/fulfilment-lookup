@@ -23,6 +23,8 @@ riffRaffUploadArtifactBucket := Option("riffraff-artifact")
 riffRaffUploadManifestBucket := Option("riffraff-builds")
 riffRaffManifestProjectName := "MemSub::Membership Admin::Fulfilment Lookup"
 
+val jacksonVersion = "2.9.8"
+
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-log4j" % "1.0.0",
@@ -34,9 +36,9 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "org.scalaz" % "scalaz-core_2.12" % "7.2.21",
   "org.mockito" % "mockito-core" % "2.18.0" % "test",
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.7",
-  "com.fasterxml.jackson.core" % "jackson-core" % "2.9.7",
-  "com.fasterxml.jackson.core" % "jackson-annotations" % "2.9.7"
+  "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
+  "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
+  "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion
 )
 
 initialize := {
