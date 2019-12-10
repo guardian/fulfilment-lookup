@@ -182,7 +182,7 @@ Resources:
     Condition: CreateProdMonitoring
     Properties:
       AlarmActions:
-      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:subscriptions_dev
+      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
       AlarmName: 5XX rate from fulfilment-lookup-api
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
@@ -202,7 +202,7 @@ Resources:
     Condition: CreateProdMonitoring
     Properties:
       AlarmActions:
-      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:subscriptions_dev
+      - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
       AlarmName: 4XX rate from fulfilment-lookup-api
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
