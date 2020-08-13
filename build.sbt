@@ -28,7 +28,7 @@ val jacksonVersion = "2.10.2"
 libraryDependencies ++= Seq(
   "commons-logging" % "commons-logging" % "1.2",
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
-  "com.amazonaws" % "aws-lambda-java-log4j" % "1.0.0",
+  "com.amazonaws" % "aws-lambda-java-log4j" % "1.0.1",
   "com.amazonaws" % "aws-java-sdk-s3" % "1.11.566",
   "com.github.melrief" %% "purecsv" % "0.1.1",
   "com.squareup.okhttp3" % "okhttp" % "3.10.0",
