@@ -3,6 +3,14 @@ stacks:
 regions:
 - eu-west-1
 deployments:
+  cfn:
+    type: cloud-formation
+    parameters:
+      templatePath: cfn.yaml
+      cloudFormationStackName: fulfilment-lookup
+      cloudFormationStackByTags: false
+      prependStackToCloudFormationStackName: false
+      createStackIfAbsent: false 
   fulfilment-lookup:
     type: aws-lambda
     parameters:
@@ -10,3 +18,4 @@ deployments:
       bucket: fulfilment-lookup-dist
       prefixStack: false
       functionNames: [fulfilment-lookup-]
+    dependencies: [cfn]
