@@ -22,6 +22,7 @@ riffRaffPackageType := assembly.value
 riffRaffUploadArtifactBucket := Option("riffraff-artifact")
 riffRaffUploadManifestBucket := Option("riffraff-builds")
 riffRaffManifestProjectName := "MemSub::Membership Admin::Fulfilment Lookup"
+riffRaffArtifactResources += (file("cloudformation.yaml"), "cfn/cfn.yaml")
 
 val jacksonVersion = "2.10.2"
 
