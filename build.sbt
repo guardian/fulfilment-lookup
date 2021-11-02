@@ -24,16 +24,16 @@ riffRaffUploadManifestBucket := Option("riffraff-builds")
 riffRaffManifestProjectName := "MemSub::Membership Admin::Fulfilment Lookup"
 riffRaffArtifactResources += (file("cloudformation.yaml"), "cfn/cfn.yaml")
 
-val jacksonVersion = "2.10.2"
+val jacksonVersion = "2.13.0"
 
 libraryDependencies ++= Seq(
   "commons-logging" % "commons-logging" % "1.2",
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-log4j" % "1.0.1",
-  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.566",
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.12.99",
   "com.github.melrief" %% "purecsv" % "0.1.1",
   "com.squareup.okhttp3" % "okhttp" % "3.10.0",
-  "com.typesafe.play" %% "play-json" % "2.8.1",
+  "com.typesafe.play" %% "play-json" % "2.9.2",
   "org.apache.logging.log4j" % "log4j-core" % "2.11.0",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "org.scalaz" % "scalaz-core_2.12" % "7.2.21",
