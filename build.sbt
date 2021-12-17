@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "com.github.melrief" %% "purecsv" % "0.1.1",
   "com.squareup.okhttp3" % "okhttp" % "3.10.0",
   "com.typesafe.play" %% "play-json" % "2.9.2",
-  "org.apache.logging.log4j" % "log4j-core" % "2.15.0",
+  "org.apache.logging.log4j" % "log4j-core" % "2.16.0",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "org.scalaz" % "scalaz-core_2.12" % "7.2.21",
   "org.mockito" % "mockito-core" % "2.18.0" % "test",
@@ -55,6 +55,6 @@ initialize := {
 //Having a merge strategy here is necessary as there is an conflict in the file contents for the jackson libs, there are two same versions with different contents.
 //As a result we're picking the first file found on the classpath - this may not be required if the contents match in a future release
 assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", xs@_*) => MergeStrategy.discard
-  case x => MergeStrategy.first
+  case PathList("META-INF", _@_*) => MergeStrategy.discard
+  case _ => MergeStrategy.first
 } 
