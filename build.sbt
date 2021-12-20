@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "com.github.melrief" %% "purecsv" % "0.1.1",
   "com.squareup.okhttp3" % "okhttp" % "3.10.0",
   "com.typesafe.play" %% "play-json" % "2.9.2",
-  "org.apache.logging.log4j" % "log4j-core" % "2.16.0",
+  "org.apache.logging.log4j" % "log4j-core" % "2.17.0",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "org.scalaz" % "scalaz-core_2.12" % "7.2.21",
   "org.mockito" % "mockito-core" % "2.18.0" % "test",
